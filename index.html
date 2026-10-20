@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Excelファイルを開く</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1d2330; --muted:#5b6475; --accent:#1d6f42; --border:#d9dde5; --err:#c0392b; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#16181d; --card:#20232a; --text:#e8eaef; --muted:#a3aab8; --accent:#3fa36b; --border:#353a45; --err:#ff7b6b; } }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Yu Gothic UI","Meiryo",sans-serif; }
+  main { max-width:640px; margin:40px auto; padding:0 16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:28px; }
+  h1 { font-size:20px; margin:0 0 8px; }
+  p { color:var(--muted); line-height:1.7; margin:8px 0; }
+  a.btn { display:block; text-align:center; background:var(--accent); color:#fff; text-decoration:none;
+          font-size:22px; font-weight:bold; padding:18px; border-radius:10px; margin:20px 0 12px; }
+  ol { color:var(--muted); line-height:1.9; padding-left:1.4em; }
+  .err { color:var(--err); font-weight:bold; }
+  code { word-break:break-all; font-size:12px; }
+</style>
+</head>
+<body>
+<main><div class="card" id="box">
+  <h1>Excelファイルを開く</h1>
+  <p class="err">開くファイルが指定されていません。SFAのリンクから開いてください。</p>
+</div></main>
+<script>
+(function () {
+  // パスはリンクの # 以降で受け取る（# 以降はサーバーに送られない）
+  // 例: #//server/share/folder/FILE~1.XLS  →  \\server\share\folder\FILE~1.XLS
+  var raw = location.hash.replace(/^#/, "");
+  if (!raw) return;
+  var path;
+  try { path = decodeURIComponent(raw); } catch (e) { path = raw; }
+  path = path.trim().replace(/\//g, "\\");
+  var box = document.getElementById("box");
+  if (!/^\\\\[^\\]+\\.+\.xlsx?$/i.test(path)) {
+    box.querySelector(".err").textContent = "リンクの形式が正しくありません。SFAのリンクをもう一度確認してください。";
+    return;
+  }
+
+  // 「|」「\」はブラウザが %7C・%5C に変換してOfficeが読めなくなるため、記号なしの短縮形と「/」区切りにする
+  var url = "ms-excel:file:" + path.replace(/\\/g, "/");
+  box.innerHTML =
+    '<h1>Excelファイルを開く</h1>' +
+    '<a class="btn" id="go">Excelで開く</a>' +
+    '<ol><li>上の緑のボタンを押す</li>' +
+    '<li>「Excel を開きますか？」と出たら<b>「開く」</b></li>' +
+    '<li>「このコンテンツを信頼しますか?」と出たら<b>「はい」</b></li></ol>' +
+    '<p>開かないときは、下のアドレスを報告してください。</p><code></code>';
+  box.querySelector("code").textContent = path;
+  document.getElementById("go").href = url;
+  location.href = url;   // 自動で開く（ブラウザが止めた場合はボタンで）
+})();
+</script>
+</body>
+</html>
